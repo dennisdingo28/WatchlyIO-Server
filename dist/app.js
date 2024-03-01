@@ -15,62 +15,74 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const socket_io_1 = require("socket.io");
 const db_1 = __importDefault(require("./db"));
 const client_1 = require("@prisma/client");
+const utils_1 = require("./utils");
 const io = new socket_io_1.Server({ cors: { origin: "*" } });
 io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("new connection", socket.id, socket.handshake.query);
-    const identifier = socket.handshake.query.id;
-    const apiKey = socket.handshake.query.apiKey;
-    socket.join(apiKey);
-    if (!apiKey || apiKey.trim() === "")
-        return;
     try {
-        const targetWorkspace = yield db_1.default.workspace.findUnique({
-            where: {
-                apiKey,
-            },
-        });
-        const alreadyExists = yield db_1.default.workspaceUser.findUnique({
-            where: {
-                id: identifier,
-            },
-        });
-        if (!alreadyExists) {
-            yield db_1.default.workspaceUser.create({
-                data: {
-                    id: identifier,
-                    workspaceId: targetWorkspace.id,
-                },
-            });
+        console.log("new connection", socket.id, socket.handshake.query);
+        const userIdentifier = socket.handshake.query.id;
+        const apiKey = socket.handshake.query.apiKey;
+        const roomId = socket.handshake.query.roomId;
+        const isValidRoom = yield (0, utils_1.isValidRoomId)(roomId);
+        if (isValidRoom) {
+            //dashboard instance
+            socket.join(roomId);
         }
         else {
-            yield db_1.default.workspaceUser.update({
+            //no room was provided - npm client instance
+            if (!apiKey ||
+                apiKey.trim() === "" ||
+                !userIdentifier ||
+                userIdentifier.trim() === "")
+                return;
+            const targetWorkspace = yield db_1.default.workspace.findUnique({
                 where: {
-                    id: identifier,
-                },
-                data: {
-                    status: client_1.WorkspaceUserStatus.ONLINE,
+                    apiKey,
                 },
             });
+            if (!targetWorkspace)
+                throw new Error("No workspace was found.");
+            const roomId = targetWorkspace.roomId;
+            socket.join(roomId);
+            //update user status
+            const alreadyExists = yield db_1.default.workspaceUser.findUnique({
+                where: {
+                    id: userIdentifier,
+                },
+            });
+            if (!alreadyExists) {
+                yield db_1.default.workspaceUser.create({
+                    data: {
+                        id: userIdentifier,
+                        workspaceId: targetWorkspace.id,
+                    },
+                });
+            }
+            else {
+                yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
+                    status: client_1.WorkspaceUserStatus.ONLINE,
+                });
+            }
+            //events
+            /* emit online status to roomId (dashboard only event) */
+            socket.to(roomId).emit("status", {
+                id: userIdentifier,
+                status: client_1.WorkspaceUserStatus.ONLINE,
+            });
+            /* socket disconnect */
+            socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
+                yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
+                    status: client_1.WorkspaceUserStatus.OFFLINE,
+                });
+                socket.to(apiKey).emit("status", {
+                    id: userIdentifier,
+                    status: client_1.WorkspaceUserStatus.OFFLINE,
+                });
+            }));
         }
-        socket.to(apiKey).emit("status", { id: identifier, status: client_1.WorkspaceUserStatus.ONLINE });
     }
     catch (err) {
+        //error handling
     }
-    socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("discoonect");
-        try {
-            yield db_1.default.workspaceUser.update({
-                where: {
-                    id: identifier,
-                },
-                data: {
-                    status: client_1.WorkspaceUserStatus.OFFLINE,
-                },
-            });
-            socket.to(apiKey).emit("status", { id: identifier, status: client_1.WorkspaceUserStatus.OFFLINE });
-        }
-        catch (err) {
-        }
-    }));
 }));
 io.listen(3002);

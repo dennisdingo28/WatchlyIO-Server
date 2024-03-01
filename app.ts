@@ -1,75 +1,86 @@
 import { Server } from "socket.io";
 import db from "./db";
 import { WorkspaceUserStatus } from "@prisma/client";
+import { isValidRoomId, updateWorkspaceUser } from "./utils";
 
-const io = new Server({ cors:{origin:"*"}});
+const io = new Server({ cors: { origin: "*" } });
 
 io.on("connection", async (socket) => {
+  try {
     console.log("new connection", socket.id, socket.handshake.query);
-    const identifier = socket.handshake.query.id as string;
+
+    const userIdentifier = socket.handshake.query.id as string;
     const apiKey = socket.handshake.query.apiKey as string;
-    socket.join(apiKey);
 
-    if(!apiKey || apiKey.trim()==="") return;
+    const roomId = socket.handshake.query.roomId as string;
+    const isValidRoom = await isValidRoomId(roomId);
 
-    try{
-        const targetWorkspace = await db.workspace.findUnique({
-            where:{
-                apiKey,
-            },
+    if (isValidRoom) {
+      //dashboard instance
+      socket.join(roomId);
+    } else {
+      //no room was provided - npm client instance
+      if (
+        !apiKey ||
+        apiKey.trim() === "" ||
+        !userIdentifier ||
+        userIdentifier.trim() === ""
+      )
+        return;
+
+      const targetWorkspace = await db.workspace.findUnique({
+        where: {
+          apiKey,
+        },
+      });
+      if (!targetWorkspace) throw new Error("No workspace was found.");
+
+      const roomId = targetWorkspace.roomId;
+      socket.join(roomId);
+
+      //update user status
+      const alreadyExists = await db.workspaceUser.findUnique({
+        where: {
+          id: userIdentifier,
+        },
+      });
+
+      if (!alreadyExists) {
+        await db.workspaceUser.create({
+          data: {
+            id: userIdentifier,
+            workspaceId: targetWorkspace.id,
+          },
+        });
+      } else {
+        await updateWorkspaceUser(userIdentifier, {
+          status: WorkspaceUserStatus.ONLINE,
+        });
+      }
+
+      //events
+
+      /* emit online status to roomId (dashboard only event) */
+      socket.to(roomId).emit("status", {
+        id: userIdentifier,
+        status: WorkspaceUserStatus.ONLINE,
+      });
+
+      /* socket disconnect */
+      socket.on("disconnect", async () => {
+        await updateWorkspaceUser(userIdentifier, {
+          status: WorkspaceUserStatus.OFFLINE,
         });
 
-        const alreadyExists = await db.workspaceUser.findUnique({
-            where:{
-                id:identifier,
-            },
+        socket.to(apiKey).emit("status", {
+          id: userIdentifier,
+          status: WorkspaceUserStatus.OFFLINE,
         });
-        
-        if(!alreadyExists){
-            await db.workspaceUser.create({
-                data:{
-                    id: identifier,
-                    workspaceId:targetWorkspace!.id,
-                },
-            });
-
-        }else{
-            await db.workspaceUser.update({
-                where:{
-                    id: identifier,
-                },
-                data:{
-                    status: WorkspaceUserStatus.ONLINE,
-                },
-            });
-
-        }
-        socket.to(apiKey).emit("status",{id: identifier, status:WorkspaceUserStatus.ONLINE});
-
-    }catch(err){
-
+      });
     }
-
-    socket.on("disconnect",async ()=>{
-        console.log("discoonect");
-    
-        try{
-         
-            await db.workspaceUser.update({
-                where:{
-                    id: identifier,
-                },
-                data:{
-                    status: WorkspaceUserStatus.OFFLINE,
-                },
-            });
-            socket.to(apiKey).emit("status",{id: identifier, status:WorkspaceUserStatus.OFFLINE});
-
-        }catch(err){
-    
-        }
-    })
-    
+  } catch (err) {
+    //error handling
+  }
 });
 
 io.listen(3002);
