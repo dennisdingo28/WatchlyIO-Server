@@ -80,6 +80,7 @@ io.on("connection", async (socket) => {
     }
   } catch (err) {
     //error handling
+    return null;
   }
 });
 

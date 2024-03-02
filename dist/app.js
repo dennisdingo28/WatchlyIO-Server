@@ -83,6 +83,7 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (err) {
         //error handling
+        return null;
     }
 }));
 io.listen(3002);
