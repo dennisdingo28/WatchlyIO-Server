@@ -7,27 +7,14 @@ type WorkspaceUserData = {
     status?: WorkspaceUserStatus
 }
 export async function updateWorkspaceUser(id: string, newData: WorkspaceUserData){
-    await db.workspaceUser.update({
-        where:{
-            id,
-        },
-        data: newData,
-    });
-}
-
-
-export async function isValidRoomId(roomId: string | undefined){
     try{
-        if(!roomId) return false;
-        
-        const workspace = await db.workspace.findFirst({
+        await db.workspaceUser.update({
             where:{
-                roomId,
+                id,
             },
+            data: newData,
         });
-
-        return !!workspace;
     }catch(err){
-        return false;
+        throw err;
     }
 }

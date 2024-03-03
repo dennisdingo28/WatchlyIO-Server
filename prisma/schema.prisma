@@ -72,28 +72,27 @@ model VerificationToken {
 }
 
 model Workspace {
-  id        String   @id
-  name      String
-  createdAt DateTime @default(now())
-  apiKey    String   @unique
-  roomId    String  @default(cuid())
-
+  id          String          @id
+  name        String
+  createdAt   DateTime        @default(now())
+  apiKey      String          @unique
+  roomId      String          @unique @default(cuid())
+  userId      String
+  Route       Route[]
+  User        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   onlineUsers WorkspaceUser[]
-  Route     Route[]
-  userId    String
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceUser {
+  id             String              @id
+  joinedAt       DateTime            @default(now())
+  disconnectedAt DateTime            @default(now())
+  status         WorkspaceUserStatus @default(ONLINE)
+  workspaceId    String
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 enum WorkspaceUserStatus {
   ONLINE
   OFFLINE
-}
-
-model WorkspaceUser {
-  id String @id
-  joinedAt DateTime @default(now())
-  disconnectedAt DateTime @default(now())
-  status WorkspaceUserStatus @default(ONLINE)
-  workspaceId String
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
