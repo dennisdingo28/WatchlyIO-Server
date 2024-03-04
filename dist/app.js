@@ -12,11 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const db_1 = __importDefault(require("./db"));
 const client_1 = require("@prisma/client");
 const utils_1 = require("./utils");
-const io = new socket_io_1.Server({ cors: { origin: "*" } });
+const app = (0, express_1.default)();
+const httpServer = (0, http_1.createServer)(app);
+const io = new socket_io_1.Server(httpServer, { cors: { origin: "*" } });
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
 //watchly npm client
@@ -61,38 +65,39 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                 id: userIdentifier,
             },
         });
+        let workspaceUser;
         if (!alreadyExists) {
-            yield db_1.default.workspaceUser.create({
+            workspaceUser = yield db_1.default.workspaceUser.create({
                 data: {
                     id: userIdentifier,
                     workspaceId: targetWorkspace.id,
+                    platform: (0, utils_1.getUserPlatform)(),
                 },
             });
         }
         else {
-            yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
+            workspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.ONLINE,
+                joinedAt: new Date(Date.now()),
             });
         }
         //events
         /* emit online status to roomId (dashboard client only event) */
-        socket.to(roomId).emit("status", {
-            id: userIdentifier,
-            status: client_1.WorkspaceUserStatus.ONLINE,
-        });
+        io.of("/dashboard").to(roomId).emit("status", workspaceUser);
         /* socket disconnect */
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
-            yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
+            const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.OFFLINE,
+                disconnectedAt: new Date(Date.now()),
             });
-            socket.to(apiKey).emit("status", {
-                id: userIdentifier,
-                status: client_1.WorkspaceUserStatus.OFFLINE,
-            });
+            io.of("/dashboard").to(roomId).emit("status", updatedWorkspaceUser);
         }));
     }
     catch (err) {
         return null;
     }
 }));
-io.listen(3002);
+app.get("/", (req, res) => {
+    res.json("re");
+});
+httpServer.listen(3002);

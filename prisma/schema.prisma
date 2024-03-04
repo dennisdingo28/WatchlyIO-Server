@@ -88,6 +88,8 @@ model WorkspaceUser {
   joinedAt       DateTime            @default(now())
   disconnectedAt DateTime            @default(now())
   status         WorkspaceUserStatus @default(ONLINE)
+  
+  platform String
   workspaceId    String
   workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

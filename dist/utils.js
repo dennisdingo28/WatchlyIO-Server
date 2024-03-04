@@ -12,17 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateWorkspaceUser = void 0;
+exports.getUserPlatform = exports.updateWorkspaceUser = void 0;
 const db_1 = __importDefault(require("./db"));
+const os_1 = __importDefault(require("os"));
 function updateWorkspaceUser(id, newData) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield db_1.default.workspaceUser.update({
+            const updatedWorkspaceUser = yield db_1.default.workspaceUser.update({
                 where: {
                     id,
                 },
                 data: newData,
             });
+            return updatedWorkspaceUser;
         }
         catch (err) {
             throw err;
@@ -30,3 +32,34 @@ function updateWorkspaceUser(id, newData) {
     });
 }
 exports.updateWorkspaceUser = updateWorkspaceUser;
+function getUserPlatform() {
+    const platform = os_1.default.platform();
+    let equivalentOS;
+    switch (platform) {
+        case 'aix':
+            equivalentOS = 'AIX';
+            break;
+        case 'darwin':
+            equivalentOS = 'macOS';
+            break;
+        case 'freebsd':
+            equivalentOS = 'FreeBSD';
+            break;
+        case 'linux':
+            equivalentOS = 'Linux';
+            break;
+        case 'openbsd':
+            equivalentOS = 'OpenBSD';
+            break;
+        case 'sunos':
+            equivalentOS = 'SunOS';
+            break;
+        case 'win32':
+            equivalentOS = 'Windows';
+            break;
+        default:
+            equivalentOS = 'Unknown';
+    }
+    return equivalentOS;
+}
+exports.getUserPlatform = getUserPlatform;

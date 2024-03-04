@@ -1,9 +1,15 @@
+import Express from "express";
+import { createServer } from "http";
 import { Server } from "socket.io";
 import db from "./db";
-import { WorkspaceUserStatus } from "@prisma/client";
-import { updateWorkspaceUser } from "./utils";
+import { WorkspaceUser, WorkspaceUserStatus } from "@prisma/client";
+import { getUserPlatform, updateWorkspaceUser } from "./utils";
+import {lookup} from "geoip-lite"
 
-const io = new Server({ cors: { origin: "*" } });
+const app = Express();
+const httpServer = createServer(app);
+
+const io = new Server(httpServer,{ cors: { origin: "*" } });
 
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
@@ -12,6 +18,7 @@ const dashboardNamespace = io.of("/dashboard");
 const workspaceUserNamespace = io.of("/workspaceUser");
 
 dashboardNamespace.on("connection", async (socket) => {
+
   try{
 
     const roomId = socket.handshake.query.roomId as string;
@@ -29,6 +36,7 @@ dashboardNamespace.on("connection", async (socket) => {
     return null;
   }
 });
+
 
 workspaceUserNamespace.on("connection", async (socket) => {
   
@@ -61,38 +69,37 @@ workspaceUserNamespace.on("connection", async (socket) => {
       },
     });
 
+    let workspaceUser: WorkspaceUser;
+
     if (!alreadyExists) {
-      await db.workspaceUser.create({
+      workspaceUser =  await db.workspaceUser.create({
         data: {
           id: userIdentifier,
           workspaceId: targetWorkspace.id,
+          platform:getUserPlatform(),
         },
       });
     } else {
-      await updateWorkspaceUser(userIdentifier, {
+      workspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.ONLINE,
+        joinedAt: new Date(Date.now()),
       });
     }
 
     //events
-
+    
     /* emit online status to roomId (dashboard client only event) */
-    socket.to(roomId).emit("status", {
-      id: userIdentifier,
-      status: WorkspaceUserStatus.ONLINE,
-    });
+    io.of("/dashboard").to(roomId).emit("status", workspaceUser);
 
     /* socket disconnect */
     socket.on("disconnect", async () => {
 
-      await updateWorkspaceUser(userIdentifier, {
+      const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.OFFLINE,
+        disconnectedAt: new Date(Date.now()),
       });
 
-      socket.to(apiKey).emit("status", {
-        id: userIdentifier,
-        status: WorkspaceUserStatus.OFFLINE,
-      });
+      io.of("/dashboard").to(roomId).emit("status", updatedWorkspaceUser);
     });
     
   } catch (err) {
@@ -100,4 +107,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
   }
 });
 
-io.listen(3002);
+app.get("/",(req,res)=>{
+  res.json("re");
+})
+
+httpServer.listen(3002);
