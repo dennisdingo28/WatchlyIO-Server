@@ -1,15 +1,9 @@
-import Express from "express";
-import { createServer } from "http";
 import { Server } from "socket.io";
 import db from "./db";
 import { WorkspaceUser, WorkspaceUserStatus } from "@prisma/client";
 import { getUserPlatform, updateWorkspaceUser } from "./utils";
-import {lookup} from "geoip-lite"
 
-const app = Express();
-const httpServer = createServer(app);
-
-const io = new Server(httpServer,{ cors: { origin: "*" } });
+const io = new Server({ cors: { origin: "*" } });
 
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
@@ -18,9 +12,7 @@ const dashboardNamespace = io.of("/dashboard");
 const workspaceUserNamespace = io.of("/workspaceUser");
 
 dashboardNamespace.on("connection", async (socket) => {
-
   try{
-
     const roomId = socket.handshake.query.roomId as string;
     const workspace = await db.workspace.findUnique({
       where:{
@@ -39,16 +31,21 @@ dashboardNamespace.on("connection", async (socket) => {
 
 
 workspaceUserNamespace.on("connection", async (socket) => {
-  
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
+  const country = socket.handshake.query.country as string;
+  const countryCode = socket.handshake.query.countryCode as string;
 
   try {
     if (
       !apiKey ||
       apiKey.trim() === "" ||
       !userIdentifier ||
-      userIdentifier.trim() === ""
+      userIdentifier.trim() === "" ||
+      !country ||
+      country.trim() === "" ||
+      !countryCode ||
+      countryCode.trim() === ""
     )
       throw new Error("Invalid fields.");
 
@@ -77,6 +74,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
           id: userIdentifier,
           workspaceId: targetWorkspace.id,
           platform:getUserPlatform(),
+          country,
+          countryCode,
         },
       });
     } else {
@@ -107,8 +106,4 @@ workspaceUserNamespace.on("connection", async (socket) => {
   }
 });
 
-app.get("/",(req,res)=>{
-  res.json("re");
-})
-
-httpServer.listen(3002);
+io.listen(3002);

@@ -43,8 +43,6 @@ model PasswordResetToken {
 model Route {
   pathname    String
   visited     Int       @default(1)
-  country     String
-  countryCode String
   workspaceId String
   Workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -88,7 +86,8 @@ model WorkspaceUser {
   joinedAt       DateTime            @default(now())
   disconnectedAt DateTime            @default(now())
   status         WorkspaceUserStatus @default(ONLINE)
-  
+  country        String
+  countryCode    String
   platform String
   workspaceId    String
   workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

@@ -12,15 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const db_1 = __importDefault(require("./db"));
 const client_1 = require("@prisma/client");
 const utils_1 = require("./utils");
-const app = (0, express_1.default)();
-const httpServer = (0, http_1.createServer)(app);
-const io = new socket_io_1.Server(httpServer, { cors: { origin: "*" } });
+const io = new socket_io_1.Server({ cors: { origin: "*" } });
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
 //watchly npm client
@@ -44,11 +40,17 @@ dashboardNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0
 workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     const userIdentifier = socket.handshake.query.id;
     const apiKey = socket.handshake.query.apiKey;
+    const country = socket.handshake.query.country;
+    const countryCode = socket.handshake.query.countryCode;
     try {
         if (!apiKey ||
             apiKey.trim() === "" ||
             !userIdentifier ||
-            userIdentifier.trim() === "")
+            userIdentifier.trim() === "" ||
+            !country ||
+            country.trim() === "" ||
+            !countryCode ||
+            countryCode.trim() === "")
             throw new Error("Invalid fields.");
         const targetWorkspace = yield db_1.default.workspace.findUnique({
             where: {
@@ -72,6 +74,8 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                     id: userIdentifier,
                     workspaceId: targetWorkspace.id,
                     platform: (0, utils_1.getUserPlatform)(),
+                    country,
+                    countryCode,
                 },
             });
         }
@@ -97,7 +101,4 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
         return null;
     }
 }));
-app.get("/", (req, res) => {
-    res.json("re");
-});
-httpServer.listen(3002);
+io.listen(3002);
