@@ -85,9 +85,12 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                 joinedAt: new Date(Date.now()),
             });
         }
-        //events
         /* emit online status to roomId (dashboard client only event) */
         io.of("/dashboard").to(roomId).emit("status", workspaceUser);
+        //events
+        socket.on("identifier-deprecated", (data) => {
+            console.log("deprected ol value", data);
+        });
         /* socket disconnect */
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {

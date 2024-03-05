@@ -12,6 +12,7 @@ const dashboardNamespace = io.of("/dashboard");
 const workspaceUserNamespace = io.of("/workspaceUser");
 
 dashboardNamespace.on("connection", async (socket) => {
+  
   try{
     const roomId = socket.handshake.query.roomId as string;
     const workspace = await db.workspace.findUnique({
@@ -31,12 +32,14 @@ dashboardNamespace.on("connection", async (socket) => {
 
 
 workspaceUserNamespace.on("connection", async (socket) => {
+
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
   const country = socket.handshake.query.country as string;
   const countryCode = socket.handshake.query.countryCode as string;
 
   try {
+    
     if (
       !apiKey ||
       apiKey.trim() === "" ||
@@ -54,6 +57,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
         apiKey,
       },
     });
+    
     if (!targetWorkspace) throw new Error("No workspace was found.");
 
     const roomId = targetWorkspace.roomId;
@@ -85,10 +89,15 @@ workspaceUserNamespace.on("connection", async (socket) => {
       });
     }
 
-    //events
     
     /* emit online status to roomId (dashboard client only event) */
     io.of("/dashboard").to(roomId).emit("status", workspaceUser);
+
+    //events
+    socket.on("identifier-deprecated",(data)=>{
+      console.log("deprected ol value", data);
+      
+    })
 
     /* socket disconnect */
     socket.on("disconnect", async () => {

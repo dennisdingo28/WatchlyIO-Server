@@ -88,8 +88,9 @@ model WorkspaceUser {
   status         WorkspaceUserStatus @default(ONLINE)
   country        String
   countryCode    String
-  platform String
+  platform       String
   workspaceId    String
+  createdAt      DateTime            @default(now())
   workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
