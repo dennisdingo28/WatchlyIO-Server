@@ -94,10 +94,13 @@ workspaceUserNamespace.on("connection", async (socket) => {
     io.of("/dashboard").to(roomId).emit("status", workspaceUser);
 
     //events
-    socket.on("identifier-deprecated",(data)=>{
-      console.log("deprected ol value", data);
-      
-    })
+    socket.on("identifier-deprecated", async  (data: {id: string})=>{
+      await db.workspaceUser.delete({
+        where:{
+          id: data.id,
+        },
+      });
+    });
 
     /* socket disconnect */
     socket.on("disconnect", async () => {
@@ -111,6 +114,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
     });
     
   } catch (err) {
+    console.log("err", err);
+    
     return null;
   }
 });

@@ -88,9 +88,13 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
         /* emit online status to roomId (dashboard client only event) */
         io.of("/dashboard").to(roomId).emit("status", workspaceUser);
         //events
-        socket.on("identifier-deprecated", (data) => {
-            console.log("deprected ol value", data);
-        });
+        socket.on("identifier-deprecated", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            yield db_1.default.workspaceUser.delete({
+                where: {
+                    id: data.id,
+                },
+            });
+        }));
         /* socket disconnect */
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
@@ -101,6 +105,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
         }));
     }
     catch (err) {
+        console.log("err", err);
         return null;
     }
 }));
