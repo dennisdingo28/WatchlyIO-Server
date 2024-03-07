@@ -51,7 +51,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
             country.trim() === "" ||
             !countryCode ||
             countryCode.trim() === "")
-            throw new Error("Invalid fields.");
+            return;
         const targetWorkspace = yield db_1.default.workspace.findUnique({
             where: {
                 apiKey,

@@ -50,8 +50,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
       !countryCode ||
       countryCode.trim() === ""
     )
-      throw new Error("Invalid fields.");
-
+      return;
+     
     const targetWorkspace = await db.workspace.findUnique({
       where: {
         apiKey,
