@@ -83,6 +83,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
             workspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.ONLINE,
                 joinedAt: new Date(Date.now()),
+                disconnectedAt: null,
             });
         }
         /* emit online status to roomId (dashboard client only event) */
@@ -95,7 +96,9 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                 },
             });
         }));
-        /* socket disconnect */
+        socket.on("current-route", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log("currente route", data);
+        }));
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.OFFLINE,

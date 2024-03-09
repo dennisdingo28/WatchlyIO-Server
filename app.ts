@@ -33,13 +33,11 @@ dashboardNamespace.on("connection", async (socket) => {
 
 
 workspaceUserNamespace.on("connection", async (socket) => {
-
+  
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
   const country = socket.handshake.query.country as string;
   const countryCode = socket.handshake.query.countryCode as string;
-
-
   
   try {
     
@@ -89,10 +87,10 @@ workspaceUserNamespace.on("connection", async (socket) => {
       workspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.ONLINE,
         joinedAt: new Date(Date.now()),
+        disconnectedAt:null,
       });
     }
 
-    
     /* emit online status to roomId (dashboard client only event) */
     io.of("/dashboard").to(roomId).emit("status", workspaceUser);
 
@@ -104,8 +102,11 @@ workspaceUserNamespace.on("connection", async (socket) => {
         },
       });
     });
+    
+    socket.on("current-route",async (data:{route: string})=>{
+      console.log("currente route", data);
+    });
 
-    /* socket disconnect */
     socket.on("disconnect", async () => {
 
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
