@@ -38,6 +38,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
   const country = socket.handshake.query.country as string;
   const countryCode = socket.handshake.query.countryCode as string;
 
+
+  
   try {
     
     if (

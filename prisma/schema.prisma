@@ -84,7 +84,7 @@ model Workspace {
 model WorkspaceUser {
   id             String              @id
   joinedAt       DateTime            @default(now())
-  disconnectedAt DateTime            @default(now())
+  disconnectedAt DateTime?
   status         WorkspaceUserStatus @default(ONLINE)
   country        String
   countryCode    String
