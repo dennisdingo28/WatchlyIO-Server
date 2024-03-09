@@ -8,6 +8,7 @@ const io = new Server({ cors: { origin: "*" } });
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
 
+
 //watchly npm client
 const workspaceUserNamespace = io.of("/workspaceUser");
 
