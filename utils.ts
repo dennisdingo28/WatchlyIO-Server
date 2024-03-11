@@ -5,7 +5,8 @@ import os from "os";
 type WorkspaceUserData = {
     joinedAt?: Date,
     disconnectedAt?: Date | null,
-    status?: WorkspaceUserStatus
+    status?: WorkspaceUserStatus,
+    currentPath?: string
 }
 export async function updateWorkspaceUser(id: string, newData: WorkspaceUserData): Promise<WorkspaceUser>{
     try{

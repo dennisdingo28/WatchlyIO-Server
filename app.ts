@@ -33,6 +33,7 @@ dashboardNamespace.on("connection", async (socket) => {
 
 
 workspaceUserNamespace.on("connection", async (socket) => {
+  console.log("new connections", socket.handshake.query);
   
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
@@ -102,11 +103,18 @@ workspaceUserNamespace.on("connection", async (socket) => {
         },
       });
     });
+
     
     socket.on("current-route",async (data:{route: string})=>{
-      console.log("currente route", data);
-    });
+      const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
+        currentPath:data.route,
+      });
 
+      // emit to related event
+      // io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
+    });
+    console.log("after");
+    
     socket.on("disconnect", async () => {
 
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
