@@ -110,10 +110,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
         currentPath:data.route,
       });
 
-      // emit to related event
-      // io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
+      io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
     });
-    console.log("after");
     
     socket.on("disconnect", async () => {
 

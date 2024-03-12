@@ -101,10 +101,8 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 currentPath: data.route,
             });
-            // emit to related event
-            // io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
+            io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
         }));
-        console.log("after");
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.OFFLINE,
