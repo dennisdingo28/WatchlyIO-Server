@@ -89,9 +89,9 @@ model WorkspaceUser {
   country        String
   countryCode    String
   platform       String
-  currentPath    String @default("/")
   workspaceId    String
   createdAt      DateTime            @default(now())
+  currentPath    String              @default("/")
   workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 

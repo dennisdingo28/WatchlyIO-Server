@@ -9,7 +9,7 @@ const io = new Server({ cors: { origin: "*" } });
 const dashboardNamespace = io.of("/dashboard");
 
 
-//watchly npm client
+//watchly package client
 const workspaceUserNamespace = io.of("/workspaceUser");
 
 dashboardNamespace.on("connection", async (socket) => {
