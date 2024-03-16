@@ -124,7 +124,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
     });
     
   } catch (err) {
-    console.log("err", err);
+    console.log("error", err);
     
     return null;
   }
