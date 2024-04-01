@@ -38,7 +38,9 @@ dashboardNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0
     }
 }));
 workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("new connections", socket.handshake.query);
+    console.log("new connection", socket.handshake.query);
+    console.log(socket.request.headers["user-agent"]);
+    const userAgent = socket.request.headers["user-agent"] || "Unknown";
     const userIdentifier = socket.handshake.query.id;
     const apiKey = socket.handshake.query.apiKey;
     const country = socket.handshake.query.country;
@@ -75,6 +77,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                     id: userIdentifier,
                     workspaceId: targetWorkspace.id,
                     platform: (0, utils_1.getUserPlatform)(),
+                    browser: (0, utils_1.getBrowser)(userAgent),
                     country,
                     countryCode,
                 },

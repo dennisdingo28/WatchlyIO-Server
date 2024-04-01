@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import db from "./db";
 import { WorkspaceUser, WorkspaceUserStatus } from "@prisma/client";
-import { getUserPlatform, updateWorkspaceUser } from "./utils";
+import { getBrowser, getUserPlatform, updateWorkspaceUser } from "./utils";
 
 const io = new Server({ cors: { origin: "*" } });
 
@@ -33,7 +33,10 @@ dashboardNamespace.on("connection", async (socket) => {
 
 
 workspaceUserNamespace.on("connection", async (socket) => {
-  console.log("new connections", socket.handshake.query);
+  console.log("new connection", socket.handshake.query);
+  console.log(socket.request.headers["user-agent"]);
+
+  const userAgent = socket.request.headers["user-agent"] || "Unknown";
   
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
@@ -80,6 +83,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
           id: userIdentifier,
           workspaceId: targetWorkspace.id,
           platform:getUserPlatform(),
+          browser: getBrowser(userAgent),
           country,
           countryCode,
         },

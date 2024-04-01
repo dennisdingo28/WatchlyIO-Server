@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserPlatform = exports.updateWorkspaceUser = void 0;
+exports.getBrowser = exports.getUserPlatform = exports.updateWorkspaceUser = void 0;
 const db_1 = __importDefault(require("./db"));
 const os_1 = __importDefault(require("os"));
 function updateWorkspaceUser(id, newData) {
@@ -63,3 +63,28 @@ function getUserPlatform() {
     return equivalentOS;
 }
 exports.getUserPlatform = getUserPlatform;
+function getBrowser(userAgent) {
+    let browser = "Unknown";
+    if (userAgent.indexOf("Chrome") != -1) {
+        browser = "Chrome";
+    }
+    else if (userAgent.indexOf("Firefox") != -1) {
+        browser = "Firefox";
+    }
+    else if (userAgent.indexOf("Safari") != -1 && userAgent.indexOf("Chrome") == -1) {
+        browser = "Safari";
+    }
+    else if (userAgent.indexOf("Edge") != -1) {
+        browser = "Edge";
+    }
+    else if (userAgent.indexOf("Opera") != -1 || userAgent.indexOf("OPR") != -1) {
+        browser = "Opera";
+    }
+    else if (userAgent.indexOf("Trident") != -1 || userAgent.indexOf("MSIE") != -1) {
+        browser = "Internet Explorer";
+    }
+    // Add more conditions for other browsers if needed
+    return browser;
+}
+exports.getBrowser = getBrowser;
+;

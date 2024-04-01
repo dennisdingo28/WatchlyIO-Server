@@ -55,3 +55,24 @@ export function getUserPlatform(){
 
     return equivalentOS;
 }
+
+export function getBrowser(userAgent: string){
+  let browser = "Unknown";
+
+  if (userAgent.indexOf("Chrome") != -1) {
+      browser = "Chrome";
+  } else if (userAgent.indexOf("Firefox") != -1) {
+      browser = "Firefox";
+  } else if (userAgent.indexOf("Safari") != -1 && userAgent.indexOf("Chrome") == -1) {
+      browser = "Safari";
+  } else if (userAgent.indexOf("Edge") != -1) {
+      browser = "Edge";
+  } else if (userAgent.indexOf("Opera") != -1 || userAgent.indexOf("OPR") != -1) {
+      browser = "Opera";
+  } else if (userAgent.indexOf("Trident") != -1 || userAgent.indexOf("MSIE") != -1) {
+      browser = "Internet Explorer";
+  }
+  // Add more conditions for other browsers if needed
+
+  return browser;
+};
