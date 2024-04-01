@@ -19,7 +19,7 @@ const utils_1 = require("./utils");
 const io = new socket_io_1.Server({ cors: { origin: "*" } });
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
-//watchly npm client
+//watchly package client
 const workspaceUserNamespace = io.of("/workspaceUser");
 dashboardNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -115,7 +115,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
         }));
     }
     catch (err) {
-        console.log("err", err);
+        console.log("error", err);
         return null;
     }
 }));
