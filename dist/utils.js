@@ -80,9 +80,6 @@ function getBrowser(userAgent) {
     else if (userAgent.indexOf("Opera") != -1 || userAgent.indexOf("OPR") != -1) {
         browser = "Opera";
     }
-    else if (userAgent.indexOf("Trident") != -1 || userAgent.indexOf("MSIE") != -1) {
-        browser = "Internet Explorer";
-    }
     // Add more conditions for other browsers if needed
     return browser;
 }
