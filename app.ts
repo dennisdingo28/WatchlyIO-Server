@@ -114,6 +114,8 @@ workspaceUserNamespace.on("connection", async (socket) => {
         currentPath:data.route,
       });
 
+      
+
       io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
     });
     
