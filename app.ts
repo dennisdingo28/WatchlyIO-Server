@@ -109,6 +109,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
     });
 
     
+    //current-route
     socket.on("current-route",async (data:{route: string})=>{
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
         currentPath:data.route,
