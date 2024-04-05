@@ -43,21 +43,21 @@ model PasswordResetToken {
 model Route {
   pathname    String
   visited     Int       @default(1)
-  workspaceId String
-  Workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String    @unique
+  Workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@id([pathname, workspaceId])
 }
 
 model User {
-  id            String      @id
+  id            String     @id
   name          String?
-  email         String?     @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
   Account       Account[]
-  Workspace     Workspace[]
+  Workspace     Workspace?
 }
 
 model VerificationToken {
@@ -70,15 +70,15 @@ model VerificationToken {
 }
 
 model Workspace {
-  id          String          @id
+  id          String         @id
   name        String
-  createdAt   DateTime        @default(now())
-  apiKey      String          @unique
-  roomId      String          @unique @default(cuid())
-  userId      String
-  Route       Route[]
-  User        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  onlineUsers WorkspaceUser[]
+  createdAt   DateTime       @default(now())
+  apiKey      String         @unique
+  roomId      String         @unique @default(cuid())
+  userId      String         @unique
+  Route       Route?
+  User        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  onlineUsers WorkspaceUser?
 }
 
 model WorkspaceUser {
@@ -90,8 +90,8 @@ model WorkspaceUser {
   countryCode    String
   platform       String
   browser        String
-  currentPath    String @default("/")
-  workspaceId    String
+  currentPath    String              @default("/")
+  workspaceId    String              @unique
   createdAt      DateTime            @default(now())
   workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
