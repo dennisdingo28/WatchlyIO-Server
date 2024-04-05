@@ -57,6 +57,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
     )
       return;
      
+      //targetWorkspace
     const targetWorkspace = await db.workspace.findUnique({
       where: {
         apiKey,
