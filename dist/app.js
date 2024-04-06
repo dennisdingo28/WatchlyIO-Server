@@ -38,8 +38,6 @@ dashboardNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0
     }
 }));
 workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("new connection", socket.handshake.query);
-    console.log(socket.request.headers["user-agent"]);
     const userAgent = socket.request.headers["user-agent"] || "Unknown";
     const userIdentifier = socket.handshake.query.id;
     const apiKey = socket.handshake.query.apiKey;
@@ -55,6 +53,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
             !countryCode ||
             countryCode.trim() === "")
             return;
+        //targetWorkspace
         const targetWorkspace = yield db_1.default.workspace.findUnique({
             where: {
                 apiKey,
@@ -100,11 +99,16 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                 },
             });
         }));
+        //current-route
         socket.on("current-route", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log(data.route);
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 currentPath: data.route,
             });
-            io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
+            console.log(updatedWorkspaceUser);
+            io.of("/dashboard")
+                .to(roomId)
+                .emit("current-route", updatedWorkspaceUser);
         }));
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {

@@ -8,43 +8,35 @@ const io = new Server({ cors: { origin: "*" } });
 //watchly dashboard
 const dashboardNamespace = io.of("/dashboard");
 
-
 //watchly package client
 const workspaceUserNamespace = io.of("/workspaceUser");
 
 dashboardNamespace.on("connection", async (socket) => {
-  
-  try{
+  try {
     const roomId = socket.handshake.query.roomId as string;
     const workspace = await db.workspace.findUnique({
-      where:{
+      where: {
         roomId,
       },
     });
-  
-    if(!workspace) throw new Error("Invalid room id");
+
+    if (!workspace) throw new Error("Invalid room id");
 
     socket.join(workspace.roomId);
-
-  }catch(err){
+  } catch (err) {
     return null;
   }
 });
 
-
 workspaceUserNamespace.on("connection", async (socket) => {
-  console.log("new connection", socket.handshake.query);
-  console.log(socket.request.headers["user-agent"]);
-
   const userAgent = socket.request.headers["user-agent"] || "Unknown";
-  
+
   const userIdentifier = socket.handshake.query.id as string;
   const apiKey = socket.handshake.query.apiKey as string;
   const country = socket.handshake.query.country as string;
   const countryCode = socket.handshake.query.countryCode as string;
-  
+
   try {
-    
     if (
       !apiKey ||
       apiKey.trim() === "" ||
@@ -56,14 +48,14 @@ workspaceUserNamespace.on("connection", async (socket) => {
       countryCode.trim() === ""
     )
       return;
-     
-      //targetWorkspace
+
+    //targetWorkspace
     const targetWorkspace = await db.workspace.findUnique({
       where: {
         apiKey,
       },
     });
-    
+
     if (!targetWorkspace) throw new Error("No workspace was found.");
 
     const roomId = targetWorkspace.roomId;
@@ -79,11 +71,11 @@ workspaceUserNamespace.on("connection", async (socket) => {
     let workspaceUser: WorkspaceUser;
 
     if (!alreadyExists) {
-      workspaceUser =  await db.workspaceUser.create({
+      workspaceUser = await db.workspaceUser.create({
         data: {
           id: userIdentifier,
           workspaceId: targetWorkspace.id,
-          platform:getUserPlatform(),
+          platform: getUserPlatform(),
           browser: getBrowser(userAgent),
           country,
           countryCode,
@@ -93,7 +85,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
       workspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.ONLINE,
         joinedAt: new Date(Date.now()),
-        disconnectedAt:null,
+        disconnectedAt: null,
       });
     }
 
@@ -101,28 +93,29 @@ workspaceUserNamespace.on("connection", async (socket) => {
     io.of("/dashboard").to(roomId).emit("status", workspaceUser);
 
     //events
-    socket.on("identifier-deprecated", async  (data: {id: string})=>{
+    socket.on("identifier-deprecated", async (data: { id: string }) => {
       await db.workspaceUser.delete({
-        where:{
+        where: {
           id: data.id,
         },
       });
     });
 
-    
     //current-route
-    socket.on("current-route",async (data:{route: string})=>{
+    socket.on("current-route", async (data: { route: string }) => {
+      console.log(data.route)
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
-        currentPath:data.route,
+        currentPath: data.route,
       });
 
-      
+      console.log(updatedWorkspaceUser);
 
-      io.of("/dashboard").to(roomId).emit("current-route", updatedWorkspaceUser);
+      io.of("/dashboard")
+        .to(roomId)
+        .emit("current-route", updatedWorkspaceUser);
     });
-    
-    socket.on("disconnect", async () => {
 
+    socket.on("disconnect", async () => {
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.OFFLINE,
         disconnectedAt: new Date(Date.now()),
@@ -130,10 +123,9 @@ workspaceUserNamespace.on("connection", async (socket) => {
 
       io.of("/dashboard").to(roomId).emit("status", updatedWorkspaceUser);
     });
-    
   } catch (err) {
     console.log("error", err);
-    
+
     return null;
   }
 });
