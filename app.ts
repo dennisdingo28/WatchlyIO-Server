@@ -58,6 +58,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
 
     if (!targetWorkspace) throw new Error("No workspace was found.");
 
+    //join workspace user - dashboard channel
     const roomId = targetWorkspace.roomId;
     socket.join(roomId);
 
