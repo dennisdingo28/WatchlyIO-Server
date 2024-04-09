@@ -117,6 +117,7 @@ workspaceUserNamespace.on("connection", async (socket) => {
     });
 
     socket.on("disconnect", async () => {
+      //on disconnect update workspace user status
       const updatedWorkspaceUser = await updateWorkspaceUser(userIdentifier, {
         status: WorkspaceUserStatus.OFFLINE,
         disconnectedAt: new Date(Date.now()),
