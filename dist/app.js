@@ -61,6 +61,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
         });
         if (!targetWorkspace)
             throw new Error("No workspace was found.");
+        //join workspace user - dashboard channel
         const roomId = targetWorkspace.roomId;
         socket.join(roomId);
         //update user status
@@ -111,6 +112,7 @@ workspaceUserNamespace.on("connection", (socket) => __awaiter(void 0, void 0, vo
                 .emit("current-route", updatedWorkspaceUser);
         }));
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
+            //on disconnect update workspace user status
             const updatedWorkspaceUser = yield (0, utils_1.updateWorkspaceUser)(userIdentifier, {
                 status: client_1.WorkspaceUserStatus.OFFLINE,
                 disconnectedAt: new Date(Date.now()),
